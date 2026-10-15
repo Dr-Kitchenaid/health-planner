@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>แผนสุขภาพของต้น</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1f2933; --muted: #6b7785; --line: #e3e7ec;
+    --pri: #0f766e; --pri-soft: #e6f4f2; --warn: #b45309; --warn-soft: #fef3e2; --done: #9aa5b1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111418; --card: #1b2026; --ink: #e6e9ed; --muted: #94a0ad; --line: #2b323a;
+      --pri: #2dd4bf; --pri-soft: #133a37; --warn: #fbbf24; --warn-soft: #3a2e14; --done: #5d6873; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Noto Sans Thai", "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.5; padding-bottom: 76px; }
+  header { padding: 16px 16px 8px; }
+  header h1 { margin: 0; font-size: 20px; }
+  header .sub { color: var(--muted); font-size: 14px; }
+  main { padding: 0 12px; max-width: 720px; margin: 0 auto; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin: 10px 0; }
+  .card h2 { margin: 0 0 8px; font-size: 17px; }
+  .card h3 { margin: 12px 0 6px; font-size: 15px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stat { flex: 1 1 30%; min-width: 96px; background: var(--pri-soft); border-radius: 10px; padding: 10px; }
+  .stat b { display: block; font-size: 20px; color: var(--pri); }
+  .stat span { font-size: 13px; color: var(--muted); }
+  nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--line);
+    display: flex; padding-bottom: env(safe-area-inset-bottom); }
+  nav button { flex: 1; background: none; border: 0; padding: 10px 2px; color: var(--muted); font: inherit; font-size: 12px; }
+  nav button .ic { display: block; font-size: 20px; }
+  nav button.on { color: var(--pri); font-weight: 600; }
+  .tab { display: none; } .tab.on { display: block; }
+  .slot { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+  .slot:last-child { border-bottom: 0; }
+  .slot .t { width: 52px; flex: none; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--muted); }
+  .slot .body { flex: 1; }
+  .slot .body b { display: block; }
+  .slot.now { background: var(--pri-soft); margin: 0 -14px; padding: 10px 14px; border-radius: 8px; }
+  .slot.now .t { color: var(--pri); }
+  .slot.done .body { color: var(--done); text-decoration: line-through; }
+  input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--pri); flex: none; margin-top: 2px; }
+  label.f { display: block; margin: 8px 0; font-size: 14px; color: var(--muted); }
+  label.f input, label.f select { display: block; width: 100%; margin-top: 4px; padding: 10px; font: inherit; font-size: 16px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); }
+  .btn { background: var(--pri); color: #fff; border: 0; border-radius: 10px; padding: 10px 16px; font: inherit; font-weight: 600; }
+  .btn.ghost { background: var(--pri-soft); color: var(--pri); }
+  .note { background: var(--warn-soft); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 10px 0; }
+  .days { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .days button { flex: 1 0 auto; min-width: 44px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 10px; padding: 6px 8px; font: inherit; font-size: 14px; }
+  .days button.on { background: var(--pri); color: #fff; border-color: var(--pri); }
+  .days button.today { font-weight: 700; }
+  .ex { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+  .ex summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .ex summary::-webkit-details-marker { display: none; }
+  .ex summary .dose { color: var(--pri); font-size: 14px; white-space: nowrap; font-weight: 600; }
+  .ex ol, .ex ul { margin: 6px 0; padding-left: 20px; }
+  .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: var(--pri-soft); color: var(--pri); margin-right: 4px; }
+  .plate { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 180px; height: 180px;
+    border-radius: 50%; overflow: hidden; margin: 8px auto; border: 4px solid var(--line); }
+  .plate div { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; font-weight: 600; color: #1f2933; }
+  .plate .veg { grid-row: 1 / 3; background: #86efac; }
+  .plate .carb { background: #fde68a; }
+  .plate .pro { background: #fca5a5; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+  .bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--pri); }
+  .water { display: flex; gap: 6px; flex-wrap: wrap; }
+  .water button { width: 38px; height: 46px; border-radius: 8px 8px 12px 12px; border: 2px solid var(--pri); background: transparent; font-size: 18px; }
+  .water button.full { background: var(--pri); }
+  a { color: var(--pri); }
+  canvas { width: 100%; height: 160px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>แผนสุขภาพของต้น</h1>
+  <div class="sub" id="hdrDate"></div>
+</header>
+
+<main>
+  <!-- วันนี้ -->
+  <section class="tab on" id="tab-today">
+    <div class="note" id="needProfile" hidden>ยังไม่ได้กรอกข้อมูลร่างกาย กรอกที่แท็บ <b>⚙️ ตั้งค่า</b> ก่อน แอปจะได้คำนวณแคลอรีและโปรตีนให้ตรงกับต้น</div>
+    <div class="card">
+      <h2>เป้าหมายวันนี้</h2>
+      <div class="row" id="targets"></div>
+      <div style="margin-top:10px" class="muted" id="progressTxt"></div>
+      <div class="bar" style="margin-top:4px"><i id="progressBar" style="width:0"></i></div>
+    </div>
+    <div class="card">
+      <h2>💧 น้ำ <span class="muted" id="waterTxt"></span></h2>
+      <div class="water" id="water"></div>
+    </div>
+    <div class="card">
+      <h2>ตารางวันนี้</h2>
+      <div id="timeline"></div>
+    </div>
+  </section>
+
+  <!-- อาหาร -->
+  <section class="tab" id="tab-food">
+    <div class="card">
+      <h2>หลักการกิน</h2>
+      <div class="plate"><div class="veg">ผัก<br>2 ส่วน</div><div class="carb">ข้าว/แป้ง<br>1 ส่วน</div><div class="pro">โปรตีน<br>1 ส่วน</div></div>
+      <p class="muted" style="text-align:center;margin-top:0">จานสุขภาพ 2:1:1 ของกรมอนามัย</p>
+      <ul>
+        <li><b>ทุกมื้อให้มีโปรตีนก่อน</b> ประมาณฝ่ามือ 1–1.5 ฝ่ามือ (25–40 g) เพื่อรักษากล้ามเนื้อตอนลดน้ำหนักและอิ่มนาน</li>
+        <li><b>ผักครึ่งจาน</b> เลือกผักหลายสี ลวก ต้ม หรือนึ่งก่อนผัด</li>
+        <li><b>ข้าวประมาณ 1 ทัพพีครึ่งต่อมื้อ</b> ถ้าได้ข้าวกล้องหรือข้าวไรซ์เบอร์รี่จะดีกว่า</li>
+        <li><b>มื้อเย็นให้จบก่อนนอนอย่างน้อย 3 ชม.</b> ถ้าเป็นไปได้ให้จบก่อน 19:00</li>
+        <li><b>ตัดเครื่องดื่มหวาน</b> เช่นชาเย็น กาแฟเย็น และน้ำอัดลม ซึ่งตัวเดียวก็ 150–300 kcal แล้ว</li>
+        <li><b>ลดของทอดและกะทิ</b> เลือกต้ม นึ่ง ย่าง หรือยำแทน</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>ตัวเลขของต้น</h2>
+      <div id="foodNums" class="muted">กรอกข้อมูลที่ ⚙️ ตั้งค่า ก่อน</div>
+    </div>
+    <div class="card">
+      <h2>ตัวอย่างเมนู (แบบไทย หาซื้อง่าย)</h2>
+      <div id="menus"></div>
+    </div>
+    <div class="card">
+      <h2>โปรตีนหาง่าย</h2>
+      <table>
+        <tr><th>อาหาร</th><th>ปริมาณ</th><th>โปรตีน</th></tr>
+        <tr><td>ไข่ไก่</td><td>1 ฟอง</td><td>~6–7 g</td></tr>
+        <tr><td>อกไก่ (สุก)</td><td>100 g</td><td>~31 g</td></tr>
+        <tr><td>ปลาทู/ปลานึ่ง</td><td>1 ตัวกลาง/100 g</td><td>~20 g</td></tr>
+        <tr><td>เต้าหู้แข็ง</td><td>100 g</td><td>~12–15 g</td></tr>
+        <tr><td>นมจืด</td><td>1 กล่อง 200 ml</td><td>~6–7 g</td></tr>
+        <tr><td>นมถั่วเหลืองไม่หวาน</td><td>1 กล่อง</td><td>~7 g</td></tr>
+        <tr><td>กรีกโยเกิร์ต</td><td>1 ถ้วย</td><td>~10–15 g</td></tr>
+        <tr><td>หมูสันใน/หมูไม่ติดมัน</td><td>100 g</td><td>~25 g</td></tr>
+        <tr><td>กุ้ง</td><td>100 g</td><td>~20 g</td></tr>
+      </table>
+      <p class="muted">ค่าประมาณ เอาไว้ใช้กะปริมาณ</p>
+    </div>
+  </section>
+
+  <!-- ออกกำลัง -->
+  <section class="tab" id="tab-ex">
+    <div class="card">
+      <h2>แผนสัปดาห์</h2>
+      <p class="muted" style="margin-top:0">ยึดตามแนวทาง WHO: แอโรบิกความหนักปานกลาง 150–300 นาที/สัปดาห์ และเวทเทรนนิ่งครบทุกกล้ามเนื้อหลัก ≥ 2 วัน/สัปดาห์ แผนนี้เป็นท่าที่ทำที่บ้านได้และ <b>ถนอมข้อเข่า</b></p>
+      <div class="days" id="dayPick"></div>
+    </div>
+    <div class="card" id="dayPlan"></div>
+    <div class="card">
+      <h2>การเพิ่มความยาก</h2>
+      <ul>
+        <li><b>สัปดาห์ 1–2:</b> ทำตามจำนวนขั้นต่ำ เน้นท่าให้ถูก ไม่ต้องรีบ</li>
+        <li><b>สัปดาห์ 3–4:</b> เพิ่มเป็นช่วงบนของจำนวนครั้ง</li>
+        <li><b>เมื่อทำครบทุกเซ็ตได้สบาย</b> (เหลือแรงอีก 2–3 ครั้ง) → เพิ่มน้ำหนัก (ขวดน้ำ/เป้ใส่หนังสือ) หรือเลือกท่าที่ยากขึ้น</li>
+        <li><b>เดิน:</b> เพิ่มครั้งละ 5 นาที/สัปดาห์ จนถึง 45 นาที ความเร็วระดับ "พูดได้ แต่ร้องเพลงไม่ได้"</li>
+      </ul>
+      <div class="note">⚠️ ถ้ามีอาการเจ็บหน้าอก หน้ามืด หายใจไม่ทัน หรือปวดข้อแบบแปลบๆ ให้หยุดทันที ถ้ามีโรคประจำตัว (ความดัน หัวใจ เบาหวาน) ควรปรึกษาแพทย์ก่อนเริ่ม</div>
+    </div>
+    <div class="card">
+      <h2>คลังท่า</h2>
+      <div id="exLib"></div>
+    </div>
+  </section>
+
+  <!-- บันทึก -->
+  <section class="tab" id="tab-log">
+    <div class="card">
+      <h2>บันทึกน้ำหนัก</h2>
+      <div class="row" style="align-items:flex-end">
+        <label class="f" style="flex:1">น้ำหนักวันนี้ (kg)<input type="number" step="0.1" id="wIn" inputmode="decimal"></label>
+        <button class="btn" id="wSave" style="margin-bottom:8px">บันทึก</button>
+      </div>
+      <canvas id="wChart" width="680" height="320"></canvas>
+      <p class="muted">ชั่งตอนเช้าหลังเข้าห้องน้ำ ก่อนกินอะไร ดูแนวโน้มรายสัปดาห์ ไม่ต้องดูรายวัน เป้าหมายที่ยั่งยืนคือลด 0.5–1 % ของน้ำหนักตัวต่อสัปดาห์</p>
+    </div>
+    <div class="card">
+      <h2>ความสม่ำเสมอ 14 วันล่าสุด</h2>
+      <div id="history"></div>
+    </div>
+  </section>
+
+  <!-- ตั้งค่า -->
+  <section class="tab" id="tab-set">
+    <div class="card">
+      <h2>ข้อมูลร่างกาย</h2>
+      <label class="f">เพศ<select id="sSex"><option value="m">ชาย</option><option value="f">หญิง</option></select></label>
+      <label class="f">อายุ (ปี)<input type="number" id="sAge" inputmode="numeric"></label>
+      <label class="f">ส่วนสูง (cm)<input type="number" id="sH" inputmode="numeric"></label>
+      <label class="f">น้ำหนัก (kg)<input type="number" step="0.1" id="sW" inputmode="decimal"></label>
+      <label class="f">กิจกรรมประจำวัน (ไม่นับที่ออกกำลัง)
+        <select id="sAct">
+          <option value="1.2">นั่งเป็นส่วนใหญ่</option>
+          <option value="1.375">เดินบ้าง</option>
+          <option value="1.55">เดินหรือยืนทั้งวัน</option>
+        </select></label>
+      <label class="f">เป้าหมาย
+        <select id="sGoal">
+          <option value="lose">ลดไขมัน (ขาด ~500 kcal/วัน)</option>
+          <option value="slow">ลดช้าๆ (ขาด ~300 kcal/วัน)</option>
+          <option value="keep">รักษาน้ำหนัก</option>
+        </select></label>
+    </div>
+    <div class="card">
+      <h2>เวลาประจำวัน</h2>
+      <label class="f">ตื่นนอน<input type="time" id="sWake"></label>
+      <label class="f">เข้านอน<input type="time" id="sSleep"></label>
+      <label class="f">ช่วงออกกำลังกาย
+        <select id="sExTime">
+          <option value="morning">เช้า (หลังตื่น ~1 ชม.)</option>
+          <option value="evening">เย็น (ก่อนมื้อเย็น)</option>
+        </select></label>
+      <button class="btn" id="saveSet">บันทึก</button>
+      <span class="muted" id="savedMsg"></span>
+    </div>
+    <div class="card">
+      <h2>ที่มาของข้อมูล</h2>
+      <ul class="muted">
+        <li>แคลอรี: สมการ Mifflin-St Jeor × ระดับกิจกรรม</li>
+        <li>โปรตีน: 1.2–1.6 g/kg โดยคิดจาก "น้ำหนักอ้างอิง" (BMI 25) ตามงานวิจัยการรักษากล้ามเนื้อช่วงลดน้ำหนัก (<a href="https://pubmed.ncbi.nlm.nih.gov/39002131/">meta-analysis 2024</a>)</li>
+        <li>ออกกำลังกาย: <a href="https://pmc.ncbi.nlm.nih.gov/articles/7719906/">WHO 2020 Guidelines</a></li>
+        <li>จาน 2:1:1: <a href="https://www.thebangkokinsight.com/news/lifestyle/81955/">กรมอนามัย</a></li>
+        <li>มื้อเย็นก่อน 19:00: meta-analysis 41 RCT พบว่าได้ผลดีกว่าเล็กน้อย (<a href="https://www.taiwannews.com.tw/en/news/6328537">ข่าว</a>)</li>
+        <li>นอน ≥ 7 ชม.: AASM/SRS consensus 2015</li>
+        <li>น้ำ: ~30–35 ml/kg/วัน (ค่าประมาณทั่วไป ถ้าเหงื่อออกมากให้เพิ่ม)</li>
+      </ul>
+      <button class="btn ghost" id="resetDay">ล้างเช็กลิสต์วันนี้</button>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-tab="today" class="on"><span class="ic">📅</span>วันนี้</button>
+  <button data-tab="food"><span class="ic">🍽️</span>อาหาร</button>
+  <button data-tab="ex"><span class="ic">💪</span>ออกกำลัง</button>
+  <button data-tab="log"><span class="ic">📈</span>บันทึก</button>
+  <button data-tab="set"><span class="ic">⚙️</span>ตั้งค่า</button>
+</nav>
+
+<script>
+"use strict";
+const LS = "tonHealth.v1";
+const DEF = { profile: { sex: "m", age: "", h: "", w: "", act: "1.2", goal: "lose", wake: "06:30", sleep: "22:30", exTime: "evening" },
+              days: {}, weights: [] };
+let S = load();
+function load() { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem(LS)) || {}); } catch { return structuredClone(DEF); } }
+function save() { localStorage.setItem(LS, JSON.stringify(S)); }
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, "0");
+const dkey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const toMin = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const toT = m => { m = ((m % 1440) + 1440) % 1440; return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`; };
+const TH_DAYS = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
+const TH_DAYS_FULL = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+
+/* ---------- คำนวณ ---------- */
+function calc() {
+  const p = S.profile, w = +p.w, h = +p.h, a = +p.age;
+  if (!w || !h || !a) return null;
+  const bmr = 10 * w + 6.25 * h - 5 * a + (p.sex === "m" ? 5 : -161);
+  const exAvg = 250; // kcal/วัน เฉลี่ยจากแผนออกกำลังในแอป (ค่าประมาณอนุรักษ์นิยม)
+  const tdee = bmr * +p.act + exAvg;
+  const def = { lose: 500, slow: 300, keep: 0 }[p.goal];
+  const floor = p.sex === "m" ? 1500 : 1200;
+  const kcal = Math.max(floor, Math.round((tdee - def) / 50) * 50);
+  const bmi = w / (h / 100) ** 2;
+  const refW = Math.min(w, 25 * (h / 100) ** 2);
+  const proLo = Math.round(refW * 1.2), proHi = Math.round(refW * 1.6);
+  const water = Math.round(w * 33 / 250); // แก้ว 250 ml
+  return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal, bmi, proLo, proHi, water: Math.min(Math.max(water, 8), 16) };
+}
+
+/* ---------- แผนออกกำลัง ---------- */
+const EX = {
+  walk: { n: "เดินเร็ว", tag: ["แอโรบิก"], dose: "30–45 นาที",
+    how: ["เดินเร็วจนหายใจแรงขึ้น พูดได้แต่ร้องเพลงไม่ได้", "แกว่งแขน ไหล่ผ่อนคลาย", "ถ้าข้างนอกร้อนหรือฝนตก เดินในห้าง ปั่นจักรยานอยู่กับที่ หรือย่ำเท้าอยู่กับที่แทนได้"],
+    tip: "แบ่งเป็น 3 รอบ รอบละ 10–15 นาทีได้ ผลใกล้เคียงกัน" },
+  chairSquat: { n: "สควอตนั่งเก้าอี้", tag: ["ขา", "ก้น"], dose: "3 × 8–15",
+    how: ["ยืนหน้าเก้าอี้ เท้ากว้างเท่าไหล่", "ดันก้นไปข้างหลัง ย่อลงจนก้นแตะเก้าอี้เบาๆ", "ดันส้นเท้าลุกขึ้นยืน"],
+    tip: "เข่าชี้ทางเดียวกับปลายเท้า หลังตรง ถ้าง่ายไปให้ถือขวดน้ำหรือเป้" },
+  inclinePush: { n: "วิดพื้นมือวางโต๊ะ/ผนัง", tag: ["อก", "ไหล่", "แขน"], dose: "3 × 6–12",
+    how: ["มือวางขอบโต๊ะที่มั่นคง (หรือผนัง ถ้าเพิ่งเริ่ม)", "ตัวตรงเป็นแผ่นกระดานตั้งแต่หัวถึงส้นเท้า", "งอศอกลดอกลงแตะขอบโต๊ะ แล้วดันกลับ"],
+    tip: "ยิ่งมือวางต่ำยิ่งยาก โต๊ะ → เก้าอี้ → ขั้นบันได → พื้น" },
+  row: { n: "ดึงเป้/ขวดน้ำ (Bent-over Row)", tag: ["หลัง", "แขน"], dose: "3 × 10–15",
+    how: ["มือหนึ่งยันเก้าอี้ ก้มตัวหลังตรง", "อีกมือถือเป้ใส่ของหรือขวดน้ำ 1.5–2 ลิตร", "ดึงศอกขึ้นไปข้างลำตัว บีบสะบัก แล้วค่อยๆ ลดลง"],
+    tip: "ทำข้างละครบเซ็ต ช่วยแก้ไหล่ห่อจากการนั่งคอม" },
+  bridge: { n: "ยกสะโพก (Glute Bridge)", tag: ["ก้น", "หลังล่าง"], dose: "3 × 12–15",
+    how: ["นอนหงาย ชันเข่า เท้าวางราบ", "เกร็งก้นยกสะโพกขึ้นจนตัวตรงจากเข่าถึงไหล่", "ค้างไว้ 1–2 วินาที แล้วลดลงช้าๆ"],
+    tip: "ถ้าหลังล่างตึงแปลว่ายกสูงเกิน ให้เกร็งท้องไว้" },
+  deadBug: { n: "Dead Bug", tag: ["แกนกลาง"], dose: "3 × 6–10/ข้าง",
+    how: ["นอนหงาย ยกแขนชี้เพดาน งอเข่าตั้งฉาก", "กดหลังล่างแนบพื้นไว้ตลอด", "เหยียดแขนซ้ายกับขาขวาออกช้าๆ แล้วกลับ จากนั้นสลับข้าง"],
+    tip: "ปลอดภัยต่อหลังกว่าซิทอัพ" },
+  birdDog: { n: "Bird Dog", tag: ["แกนกลาง", "หลัง"], dose: "3 × 8/ข้าง",
+    how: ["คลานสี่ขา มืออยู่ใต้ไหล่ เข่าอยู่ใต้สะโพก", "เหยียดแขนขวากับขาซ้ายให้ตรง ค้าง 2 วินาที", "กลับแล้วสลับข้าง"],
+    tip: "สะโพกนิ่ง ไม่บิด" },
+  stepUp: { n: "ก้าวขึ้นขั้นบันได", tag: ["ขา", "ก้น"], dose: "3 × 8–12/ข้าง",
+    how: ["ยืนหน้าขั้นบันไดขั้นแรก (มีราวให้จับ)", "วางเท้าทั้งฝ่าบนขั้น ดันตัวขึ้นด้วยขาข้างบน", "ค่อยๆ ลงแล้วทำซ้ำ"],
+    tip: "ใช้แรงขาข้างบนเป็นหลัก ไม่ใช้แรงส่งจากขาล่าง" },
+  plank: { n: "แพลงก์ศอกบนโต๊ะ/พื้น", tag: ["แกนกลาง"], dose: "3 × 20–40 วิ",
+    how: ["ศอกวางบนขอบโต๊ะ (ง่าย) หรือบนพื้น (ยาก)", "ตัวตรง เกร็งท้องกับก้น", "หายใจปกติ ห้ามกลั้นหายใจ"],
+    tip: "ถ้าสะโพกตก ให้หยุดเซ็ตนั้น" },
+  carry: { n: "ถือของเดิน (Farmer Carry)", tag: ["ทั้งตัว", "แรงบีบมือ"], dose: "3 × 30–45 วิ",
+    how: ["ถือถุงหรือแกลลอนน้ำมือละใบ", "ยืนตัวตรง ไหล่ลง เดินช้าๆ", "วางลงเมื่อครบเวลา"],
+    tip: "ฝึกท่าทางและแกนกลางไปพร้อมกัน" },
+  revLunge: { n: "ก้าวถอยหลัง (Reverse Lunge) จับเก้าอี้", tag: ["ขา", "ก้น"], dose: "3 × 6–10/ข้าง",
+    how: ["มือจับพนักเก้าอี้ไว้ทรงตัว", "ก้าวขาหนึ่งถอยหลัง ย่อจนเข่าหลังใกล้พื้น", "ดันส้นเท้าหน้ากลับมายืน"],
+    tip: "ถอยหลังจะถนอมเข่ากว่าก้าวไปข้างหน้า" },
+  stretch: { n: "ยืดเหยียด + Mobility", tag: ["ยืดหยุ่น"], dose: "10–15 นาที",
+    how: ["ยืดอก (มือยันขอบประตูแล้วเอนตัวไปข้างหน้า) 30 วิ × 2", "ยืดสะโพกด้านหน้า (คุกเข่าข้างเดียว) 30 วิ/ข้าง", "ยืดต้นขาหลัง (นั่งเหยียดขา) 30 วิ/ข้าง", "แมว-วัว (Cat-Cow) 10 ครั้ง", "หมุนไหล่ หมุนคอช้าๆ 10 รอบ"],
+    tip: "ช่วยลดปวดคอบ่าไหล่จากการนั่งนาน" },
+  warmup: { n: "วอร์มอัพ", tag: ["ก่อนเริ่ม"], dose: "5 นาที",
+    how: ["ย่ำเท้าอยู่กับที่ 1 นาที", "หมุนแขน 10 รอบ หมุนสะโพก 10 รอบ", "สควอตเบาๆ 10 ครั้ง", "แตะไหล่สลับ (ท่าแพลงก์บนโต๊ะ) 10 ครั้ง"],
+    tip: "อย่าข้าม ลดโอกาสบาดเจ็บ" },
+};
+const STR_A = ["warmup", "chairSquat", "inclinePush", "row", "bridge", "deadBug"];
+const STR_B = ["warmup", "stepUp", "inclinePush", "row", "revLunge", "plank", "carry"];
+// index = getDay() (0 = อาทิตย์)
+const WEEK = [
+  { k: "rest", name: "พัก / ยืดเหยียด", items: ["stretch"], note: "วันพัก เดินเล่นสบายๆ ได้ ช่วยให้ร่างกายฟื้นตัว" },
+  { k: "strA", name: "เวท A (ทั้งตัว)", items: STR_A, note: "พักระหว่างเซ็ต 60–90 วิ ใช้เวลารวม ~35 นาที" },
+  { k: "cardio", name: "เดินเร็ว", items: ["walk", "stretch"], note: "นับเป็นแอโรบิกตามแนวทาง WHO" },
+  { k: "strB", name: "เวท B (ทั้งตัว)", items: STR_B, note: "พักระหว่างเซ็ต 60–90 วิ ใช้เวลารวม ~40 นาที" },
+  { k: "cardio", name: "เดินเร็ว", items: ["walk", "stretch"], note: "" },
+  { k: "strA", name: "เวท A (ทั้งตัว)", items: STR_A, note: "ลองเพิ่มจำนวนครั้งจากวันจันทร์ 1–2 ครั้ง" },
+  { k: "cardio", name: "เดินเร็วนาน / กิจกรรมสนุก", items: ["walk", "stretch"], note: "ว่ายน้ำ ปั่นจักรยาน หรือเล่นกีฬากับครอบครัวแทนได้ 45–60 นาที" },
+];
+
+/* ---------- ตารางรายวัน ---------- */
+function buildDay(date) {
+  const p = S.profile, wake = toMin(p.wake), sleep = toMin(p.sleep) + (toMin(p.sleep) <= toMin(p.wake) ? 1440 : 0);
+  const plan = WEEK[date.getDay()];
+  const exDur = plan.k === "rest" ? 15 : plan.k === "cardio" ? 45 : 40;
+  const dinner = Math.min(sleep - 180, Math.max(wake + 690, 18 * 60));
+  const s = [];
+  s.push({ id: "wake", t: wake, ic: "🌅", b: "ตื่น ดื่มน้ำ 1–2 แก้ว", d: "เปิดม่านรับแสงเช้า 5–10 นาที ช่วยปรับนาฬิกาชีวิต แล้วชั่งน้ำหนัก (ถ้าเป็นวันชั่ง)" });
+  if (p.exTime === "morning") s.push({ id: "ex", t: wake + 45, ic: "💪", b: `ออกกำลัง: ${plan.name}`, d: `~${exDur} นาที · ดูท่าที่แท็บ 💪` });
+  s.push({ id: "bf", t: wake + (p.exTime === "morning" ? 45 + exDur + 15 : 60), ic: "🍳", b: "มื้อเช้า + โปรตีน", d: "ไข่ 2 ฟอง หรือโจ๊กใส่ไข่/อกไก่ + นมจืด/นมถั่วเหลืองไม่หวาน" });
+  s.push({ id: "move1", t: wake + 210, ic: "🚶", b: "ลุกเดิน 5 นาที", d: "นั่งครบ 1 ชม.ให้ลุกขยับ ยืดคอบ่าไหล่" });
+  s.push({ id: "lunch", t: Math.max(wake + 330, 12 * 60), ic: "🍱", b: "มื้อกลางวัน จาน 2:1:1", d: "เลือกกับข้าวแบบไม่ทอด ข้าว 1 ทัพพีครึ่ง ผักเยอะๆ" });
+  s.push({ id: "move2", t: Math.max(wake + 330, 12 * 60) + 150, ic: "🚶", b: "ลุกเดิน + ดื่มน้ำ", d: "ถ้าง่วงบ่าย เดินแทนกาแฟเย็น" });
+  s.push({ id: "snack", t: Math.max(wake + 330, 12 * 60) + 210, ic: "🥛", b: "ของว่าง (ถ้าหิว)", d: "ผลไม้ 1 กำมือ, นมจืด, ไข่ต้ม หรือถั่วไม่เค็ม 1 กำมือ" });
+  if (p.exTime === "evening") s.push({ id: "ex", t: dinner - exDur - 30, ic: "💪", b: `ออกกำลัง: ${plan.name}`, d: `~${exDur} นาที · ดูท่าที่แท็บ 💪` });
+  s.push({ id: "dinner", t: dinner, ic: "🍲", b: "มื้อเย็น (มื้อเบาสุด)", d: "เน้นโปรตีน + ผัก ลดข้าวลงครึ่ง ให้จบก่อนนอน ≥ 3 ชม." });
+  s.push({ id: "walkPost", t: dinner + 40, ic: "🚶", b: "เดินหลังอาหาร 10 นาที", d: "ช่วยลดน้ำตาลในเลือดหลังมื้อ" });
+  s.push({ id: "wind", t: sleep - 60, ic: "📵", b: "เตรียมนอน", d: "หรี่ไฟ วางมือถือ อาบน้ำ ห้องเย็นและมืด" });
+  s.push({ id: "sleep", t: sleep, ic: "😴", b: "เข้านอน", d: `ได้นอน ${((wake + 1440 - sleep % 1440) % 1440 / 60).toFixed(1)} ชม. (เป้า ≥ 7 ชม.)` });
+  return s.sort((a, b) => a.t - b.t);
+}
+
+/* ---------- render ---------- */
+function dayState(k) { return S.days[k] ||= { checks: {}, water: 0 }; }
+
+function renderToday() {
+  const now = new Date(), k = dkey(now), st = dayState(k), c = calc();
+  $("hdrDate").textContent = `วัน${TH_DAYS_FULL[now.getDay()]}ที่ ${now.toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })}`;
+  $("needProfile").hidden = !!c;
+  const plan = WEEK[now.getDay()];
+  $("targets").innerHTML = c ? `
+    <div class="stat"><b>${c.kcal.toLocaleString()}</b><span>kcal/วัน</span></div>
+    <div class="stat"><b>${c.proLo}–${c.proHi} g</b><span>โปรตีน</span></div>
+    <div class="stat"><b>${plan.name}</b><span>ออกกำลังวันนี้</span></div>` :
+    `<div class="stat"><b>${plan.name}</b><span>ออกกำลังวันนี้</span></div>`;
+  const slots = buildDay(now), nowMin = now.getHours() * 60 + now.getMinutes();
+  let cur = -1; slots.forEach((s, i) => { if (s.t % 1440 <= nowMin || s.t >= 1440 && nowMin < toMin(S.profile.wake)) cur = i; });
+  $("timeline").innerHTML = slots.map((s, i) => `
+    <label class="slot ${i === cur ? "now" : ""} ${st.checks[s.id] ? "done" : ""}">
+      <span class="t">${toT(s.t)}</span>
+      <span class="body"><b>${s.ic} ${s.b}</b><span class="muted">${s.d}</span></span>
+      <input type="checkbox" data-id="${s.id}" ${st.checks[s.id] ? "checked" : ""}>
+    </label>`).join("");
+  $("timeline").querySelectorAll("input").forEach(cb => cb.onchange = () => { st.checks[cb.dataset.id] = cb.checked; save(); renderToday(); });
+  const done = slots.filter(s => st.checks[s.id]).length;
+  $("progressTxt").textContent = `ทำแล้ว ${done}/${slots.length} รายการ`;
+  $("progressBar").style.width = `${done / slots.length * 100}%`;
+  const goal = c ? c.water : 10;
+  $("waterTxt").textContent = `${st.water}/${goal} แก้ว (250 ml)`;
+  $("water").innerHTML = Array.from({ length: goal }, (_, i) => `<button class="${i < st.water ? "full" : ""}" data-i="${i}" aria-label="แก้วที่ ${i + 1}"></button>`).join("");
+  $("water").querySelectorAll("button").forEach(b => b.onclick = () => { const i = +b.dataset.i; st.water = st.water === i + 1 ? i : i + 1; save(); renderToday(); });
+}
+
+function renderFood() {
+  const c = calc();
+  if (c) {
+    const per = Math.round(c.kcal * 0.3 / 10) * 10;
+    $("foodNums").innerHTML = `
+      <table>
+        <tr><td>BMI ตอนนี้</td><td><b>${c.bmi.toFixed(1)}</b> <span class="muted">(เกณฑ์เอเชีย: 18.5–22.9 ปกติ, ≥ 25 อ้วน)</span></td></tr>
+        <tr><td>BMR (พลังงานพื้นฐาน)</td><td>${c.bmr.toLocaleString()} kcal</td></tr>
+        <tr><td>ใช้พลังงานต่อวัน (โดยประมาณ)</td><td>${c.tdee.toLocaleString()} kcal</td></tr>
+        <tr><td><b>เป้ากินต่อวัน</b></td><td><b>${c.kcal.toLocaleString()} kcal</b></td></tr>
+        <tr><td>แบ่งมื้อ</td><td>เช้า ~${per} · กลางวัน ~${per} · เย็น ~${Math.round(c.kcal * 0.3 / 10) * 10} · ว่าง ~${Math.round(c.kcal * 0.1 / 10) * 10}</td></tr>
+        <tr><td><b>โปรตีน</b></td><td><b>${c.proLo}–${c.proHi} g/วัน</b> (~${Math.round(c.proLo / 3)}–${Math.round(c.proHi / 3)} g/มื้อ)</td></tr>
+        <tr><td>น้ำ</td><td>~${c.water} แก้ว (${(c.water * 0.25).toFixed(1)} ลิตร)</td></tr>
+      </table>
+      <p class="muted">ตัวเลขเป็นค่าประมาณ ให้ดูน้ำหนักจริง 2–3 สัปดาห์ ถ้าไม่ลดเลยให้ลดลงอีก 150–200 kcal ถ้าลดเร็วกว่า 1 kg/สัปดาห์ต่อเนื่องให้เพิ่มขึ้น</p>`;
+  }
+  const M = {
+    "🍳 เช้า": ["ไข่ต้ม 2 ฟอง + ข้าวกล้อง ½ ทัพพี + นมจืด", "โจ๊กหมูสับใส่ไข่ (ไม่ใส่ปาท่องโก๋)", "ขนมปังโฮลวีต 2 แผ่น + ไข่ดาวน้ำ/ไข่คน + กาแฟดำ", "ข้าวต้มปลา + ไข่ต้ม"],
+    "🍱 กลางวัน": ["ข้าวกะเพราอกไก่/หมูสับ ไข่ต้มแทนไข่ดาว ขอผักเพิ่ม", "ข้าวมันไก่ → สั่งข้าวสวยแทนข้าวมัน + เนื้ออกไก่", "ก๋วยเตี๋ยวน้ำใส เส้นเล็กหรือเกาเหลา + เพิ่มลูกชิ้น/ไข่", "ข้าวราดแกงจืด/ต้มยำ + ผัดผักน้ำมันน้อย 1 อย่าง"],
+    "🍲 เย็น": ["ปลานึ่งมะนาว/ปลาทอดไม่ชุบแป้ง + ผักลวกน้ำพริก + ข้าว ½ ทัพพี", "ส้มตำไทยไม่ใส่ปู + ไก่ย่าง (ไม่เอาหนัง) + ข้าวเหนียว 1 ปั้นเล็ก", "สุกี้น้ำ (ผักเยอะ ไม่ใส่วุ้นเส้นเยอะ) ใส่ไข่", "ยำวุ้นเส้นทะเล/ยำไข่ต้ม + ต้มจืดเต้าหู้"],
+    "🥛 ของว่าง": ["ผลไม้ 1 กำมือ (ฝรั่ง ชมพู่ แอปเปิ้ล)", "นมจืด/นมถั่วเหลืองไม่หวาน", "ไข่ต้ม 1–2 ฟอง", "กรีกโยเกิร์ตไม่หวาน", "ถั่วอบไม่เค็ม 1 กำมือเล็ก"],
+  };
+  $("menus").innerHTML = Object.entries(M).map(([k, v]) => `<h3>${k}</h3><ul>${v.map(x => `<li>${x}</li>`).join("")}</ul>`).join("");
+}
+
+let pickDay = new Date().getDay();
+function exHTML(key) {
+  const e = EX[key];
+  return `<details class="ex"><summary><span><b>${e.n}</b><br>${e.tag.map(t => `<span class="tag">${t}</span>`).join("")}</span><span class="dose">${e.dose}</span></summary>
+    <ol>${e.how.map(h => `<li>${h}</li>`).join("")}</ol><div class="muted">💡 ${e.tip}</div></details>`;
+}
+function renderEx() {
+  const today = new Date().getDay(), order = [1, 2, 3, 4, 5, 6, 0];
+  $("dayPick").innerHTML = order.map(d => `<button data-d="${d}" class="${d === pickDay ? "on" : ""} ${d === today ? "today" : ""}">${TH_DAYS[d]}</button>`).join("");
+  $("dayPick").querySelectorAll("button").forEach(b => b.onclick = () => { pickDay = +b.dataset.d; renderEx(); });
+  const p = WEEK[pickDay];
+  $("dayPlan").innerHTML = `<h2>วัน${TH_DAYS_FULL[pickDay]}: ${p.name}</h2>${p.note ? `<p class="muted" style="margin-top:0">${p.note}</p>` : ""}${p.items.map(exHTML).join("")}`;
+  $("exLib").innerHTML = Object.keys(EX).filter(k => k !== "warmup").map(exHTML).join("");
+}
+
+function renderLog() {
+  const ws = [...S.weights].sort((a, b) => a.d.localeCompare(b.d)).slice(-60);
+  const cv = $("wChart"), g = cv.getContext("2d"), W = cv.width, H = cv.height;
+  const css = getComputedStyle(document.documentElement);
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = css.getPropertyValue("--muted"); g.font = "22px system-ui";
+  if (ws.length < 2) { g.fillText(ws.length ? `บันทึกแล้ว ${ws[0].w} kg — บันทึกอีกวันเพื่อดูกราฟ` : "ยังไม่มีข้อมูล", 16, H / 2); }
+  else {
+    const vals = ws.map(x => x.w), lo = Math.min(...vals) - 1, hi = Math.max(...vals) + 1, pl = 60, pr = 16, pt = 16, pb = 30;
+    const X = i => pl + i * (W - pl - pr) / (ws.length - 1), Y = v => pt + (hi - v) * (H - pt - pb) / (hi - lo);
+    g.strokeStyle = css.getPropertyValue("--line"); g.lineWidth = 1;
+    [lo + 1, (lo + hi) / 2, hi - 1].forEach(v => { g.beginPath(); g.moveTo(pl, Y(v)); g.lineTo(W - pr, Y(v)); g.stroke(); g.fillText(v.toFixed(1), 4, Y(v) + 7); });
+    g.strokeStyle = css.getPropertyValue("--pri"); g.lineWidth = 3; g.beginPath();
+    ws.forEach((x, i) => i ? g.lineTo(X(i), Y(x.w)) : g.moveTo(X(i), Y(x.w))); g.stroke();
+    g.fillStyle = css.getPropertyValue("--pri"); ws.forEach((x, i) => { g.beginPath(); g.arc(X(i), Y(x.w), 4, 0, 7); g.fill(); });
+    g.fillStyle = css.getPropertyValue("--muted");
+    g.fillText(ws[0].d.slice(5), pl, H - 4); g.fillText(ws.at(-1).d.slice(5), W - pr - 60, H - 4);
+  }
+  const rows = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = dkey(d), st = S.days[k], n = buildDay(d).length;
+    const done = st ? Object.values(st.checks).filter(Boolean).length : 0;
+    rows.push(`<tr><td>${TH_DAYS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}</td><td style="width:50%"><div class="bar"><i style="width:${Math.min(100, done / n * 100)}%"></i></div></td><td>${done}/${n}</td><td>💧${st ? st.water : 0}</td></tr>`);
+  }
+  $("history").innerHTML = `<table>${rows.join("")}</table>`;
+}
+
+function renderSet() {
+  const p = S.profile;
+  $("sSex").value = p.sex; $("sAge").value = p.age; $("sH").value = p.h; $("sW").value = p.w;
+  $("sAct").value = p.act; $("sGoal").value = p.goal; $("sWake").value = p.wake; $("sSleep").value = p.sleep; $("sExTime").value = p.exTime;
+}
+
+function renderAll() { renderToday(); renderFood(); renderEx(); renderLog(); renderSet(); }
+
+/* ---------- events ---------- */
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.id === "tab-" + b.dataset.tab));
+  if (b.dataset.tab === "log") renderLog();
+  scrollTo(0, 0);
+});
+$("saveSet").onclick = () => {
+  Object.assign(S.profile, { sex: $("sSex").value, age: $("sAge").value, h: $("sH").value, w: $("sW").value, act: $("sAct").value,
+    goal: $("sGoal").value, wake: $("sWake").value || "06:30", sleep: $("sSleep").value || "22:30", exTime: $("sExTime").value });
+  save(); renderAll(); $("savedMsg").textContent = " ✓ บันทึกแล้ว"; setTimeout(() => $("savedMsg").textContent = "", 2000);
+};
+$("wSave").onclick = () => {
+  const w = parseFloat($("wIn").value); if (!w) return;
+  const k = dkey(new Date()); S.weights = S.weights.filter(x => x.d !== k); S.weights.push({ d: k, w });
+  S.profile.w = String(w); save(); $("wIn").value = ""; renderAll();
+};
+$("resetDay").onclick = () => { if (confirm("ล้างเช็กลิสต์และน้ำของวันนี้?")) { delete S.days[dkey(new Date())]; save(); renderAll(); } };
+renderAll();
+setInterval(renderToday, 60000);
+</script>
+</body>
+</html>
